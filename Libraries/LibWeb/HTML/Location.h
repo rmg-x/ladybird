@@ -13,6 +13,7 @@
 #include <LibWeb/Bindings/PlatformObject.h>
 #include <LibWeb/Forward.h>
 #include <LibWeb/HTML/CrossOrigin/CrossOriginPropertyDescriptorMap.h>
+#include <LibWeb/HTML/DOMStringList.h>
 #include <LibWeb/HTML/Navigable.h>
 
 namespace Web::HTML {
@@ -68,6 +69,8 @@ public:
     HTML::CrossOriginPropertyDescriptorMap const& cross_origin_property_descriptor_map() const { return m_cross_origin_property_descriptor_map; }
     HTML::CrossOriginPropertyDescriptorMap& cross_origin_property_descriptor_map() { return m_cross_origin_property_descriptor_map; }
 
+    WebIDL::ExceptionOr<GC::Ref<HTML::DOMStringList>> ancestor_origins() const;
+
 private:
     explicit Location(JS::Realm&);
 
@@ -83,6 +86,8 @@ private:
 
     // [[DefaultProperties]], https://html.spec.whatwg.org/multipage/history.html#defaultproperties
     Vector<JS::Value> m_default_properties;
+
+    GC::Ref<HTML::DOMStringList> m_ancestor_origins;
 };
 
 }

@@ -27,6 +27,7 @@ GC_DEFINE_ALLOCATOR(Location);
 // https://html.spec.whatwg.org/multipage/history.html#the-location-interface
 Location::Location(JS::Realm& realm)
     : PlatformObject(realm, MayInterfereWithIndexedPropertyAccess::Yes)
+    , m_ancestor_origins(DOMStringList::create(realm, {}))
 {
 }
 
@@ -36,6 +37,7 @@ void Location::visit_edges(Cell::Visitor& visitor)
 {
     Base::visit_edges(visitor);
     visitor.visit(m_default_properties);
+    visitor.visit(m_ancestor_origins);
 }
 
 // https://html.spec.whatwg.org/multipage/nav-history-apis.html#the-location-interface
@@ -607,6 +609,22 @@ JS::ThrowCompletionOr<GC::RootVector<JS::Value>> Location::internal_own_property
 
     // 2. Return CrossOriginOwnPropertyKeys(this).
     return HTML::cross_origin_own_property_keys(this);
+}
+
+// https://html.spec.whatwg.org/multipage/nav-history-apis.html#dom-location-ancestororigins
+WebIDL::ExceptionOr<GC::Ref<HTML::DOMStringList>> Location::ancestor_origins() const
+{
+    // 1. If this's relevant Document is null, then return an empty list.
+    auto const relevant_document = this->relevant_document();
+    if (!relevant_document)
+        return DOMStringList::create(realm(), {});
+
+    // 2. If this's relevant Document's origin is not same origin-domain with the entry settings object's origin, then throw a "SecurityError" DOMException.
+    if (!relevant_document->origin().is_same_origin_domain(entry_settings_object().origin()))
+        return WebIDL::SecurityError::create(realm(), "Location's relevant document is not same origin-domain with the entry settings object's origin"_string);
+
+    // 3. Otherwise, return this's ancestor origins list.
+    return m_ancestor_origins;
 }
 
 }
